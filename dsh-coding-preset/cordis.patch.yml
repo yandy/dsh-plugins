@@ -47,7 +47,7 @@
               # shipped provider parses each skill's frontmatter itself.
               customSkillDirs:
                 - !!js >-
-                  process.getBuiltinModule('node:url').fileURLToPath(new URL('skills/', baseUrl))
+                  process.getBuiltinModule('node:url').fileURLToPath(new URL('.agents/skills/', baseUrl))
           - id: tool-skill
             name: '@deepseek-ai/dsh-tool-skill'
           - id: command-goal
