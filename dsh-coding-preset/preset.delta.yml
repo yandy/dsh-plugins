@@ -1,0 +1,48 @@
+# Delta over a shipped preset. `tools/build-preset-patch.py` reads the baseline
+# bundle's preset patch, applies this file, and writes cordis.patch.yml.
+#
+# The Loader replaces a patched row's `config` wholesale and cannot reach rows
+# inside another preset's plugin list, so a row that differs at all must be
+# restated completely. This file holds only those restatements and additions;
+# everything else is copied verbatim from the baseline, which keeps the
+# generated patch reviewable as a diff and makes an upstream change visible
+# through `--check`.
+
+baseline:
+  # Bundle that ships the preset this one is based on.
+  bundle: '@deepseek-ai/dsh-web-app'
+  # Preset id whose declaration is copied; also selects presets/<id>.patch.yml.
+  preset: standard
+
+preset:
+  id: coding
+  # Loader row id of the generated declaration.
+  row: preset-coding
+  name: Coding
+  description: Standard-mode coding agent with a preinstalled, extensible skill pack.
+  order: 10
+
+# Baseline rows restated in full, keyed by row id. Fragments are written as if
+# at the top level of the plugin list and re-indented by the generator.
+replace:
+  skill-filesystem: |
+    - id: skill-filesystem
+      name: '@deepseek-ai/dsh-skill-filesystem'
+      config:
+        # The skill pack ships inside this package, so no path here is tied to a
+        # device or install location: `baseUrl` is the declaring patch file's
+        # own URL, which is inside the installed package wherever it landed.
+        # Add a skill by dropping skills/<name>/SKILL.md into the package; the
+        # shipped provider parses each skill's frontmatter itself.
+        customSkillDirs:
+          - !!js >-
+            process.getBuiltinModule('node:url').fileURLToPath(new URL('.agents/skills/', baseUrl))
+
+# Rows the baseline does not have, inserted after the named row (`end` appends
+# last). Uncomment to extend the preset with packaged or shipped plugins:
+#
+# append:
+#   after: skill-filesystem
+#   rows: |
+#     - id: skill-docs
+#       name: '@deepseek-ai/dsh-skill-office'
