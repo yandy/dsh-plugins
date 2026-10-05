@@ -29,17 +29,22 @@ replace:
     - id: skill-filesystem
       name: '@deepseek-ai/dsh-skill-filesystem'
       config:
-        # The skill pack ships inside this package, so no path here is tied to a
-        # device or install location: `baseUrl` is the declaring patch file's
-        # own URL, which is inside the installed package wherever it landed.
+        # The skill pack ships inside this package, so the root is resolved by
+        # package NAME from `baseUrl`, never relative to it: a bundle patch is
+        # inserted into the profile's root include, so a row declared here sees
+        # `baseUrl` = the PROFILE directory, not this package's directory. A
+        # relative `.agents/skills/` therefore silently registered zero skills
+        # (the provider treats a missing root as an empty root). Resolving the
+        # installed package from `baseUrl` stays device- and install-agnostic
+        # and mirrors the shipped `cordis` preset's own skill root expression.
         # Add a skill by dropping .agents/skills/<name>/SKILL.md into the
         # package; the shipped provider parses each skill's frontmatter itself.
         # package.json's `files` must keep covering that directory: a git or
-        # registry install unpacks that allowlist, and an absent skill root
-        # registers zero skills instead of failing. `--check` verifies both.
+        # registry install unpacks that allowlist. `--check` verifies the
+        # allowlist and the row, but never the evaluated expression.
         customSkillDirs:
           - !!js >-
-            process.getBuiltinModule('node:url').fileURLToPath(new URL('.agents/skills/', baseUrl))
+            process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('dsh-coding-preset/package.json')), '.agents/skills')
 
 # Rows the baseline does not have, inserted after the named row (`end` appends
 # last). Uncomment to extend the preset with packaged or shipped plugins:
