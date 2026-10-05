@@ -6,7 +6,7 @@ DeepSeek Harness 的 **Coding agent preset**：内置「标准模式」的全部
 
 - **预设**：`id: coding`，显示名 `Coding`，`order: 10`。
 - **声明**：`cordis.patch.yml` 由 `preset.delta.yml` + 上游基线**生成**（不要手改）。
-- **技能**：包内 `skills/`，由内置 `@deepseek-ai/dsh-skill-filesystem` 直接读取；声明里没有任何设备路径
+- **技能**：包内 `.agents/skills/`，由内置 `@deepseek-ai/dsh-skill-filesystem` 直接读取；声明里没有任何设备路径
   （用的是 `baseUrl` 相对表达式，见下）。
 - **作用域**：技能注册在 Coding 预设自己的作用域层，只有绑定该预设的会话能看到，其他预设不受影响。
 
@@ -26,7 +26,7 @@ diff 里能直接看到新增/改动的行。建议放进 pre-commit 或发布�
 
 ## 当前差异（相对 standard）
 
-只有一行不同：`skill-filesystem` 增加 `customSkillDirs`，指向本包自带的 `skills/`：
+只有一行不同：`skill-filesystem` 增加 `customSkillDirs`，指向本包自带的 `.agents/skills/`：
 
 ```yaml
           - id: skill-filesystem
@@ -34,17 +34,23 @@ diff 里能直接看到新增/改动的行。建议放进 pre-commit 或发布�
             config:
               customSkillDirs:
                 - !!js >-
-                  process.getBuiltinModule('node:url').fileURLToPath(new URL('skills/', baseUrl))
+                  process.getBuiltinModule('node:url').fileURLToPath(new URL('.agents/skills/', baseUrl))
 ```
 
 `baseUrl` 是**声明文件自己的 URL**，因此解析结果永远落在"这个包被安装到的地方"，与设备、路径、安装方式无关。
+
+两个容易静默失效的点，`tools/build-preset-patch.py` 都会拦住（`--check` 同样生效）：
+
+1. 目录不在包里 —— 技能根不存在时 provider 只会返回空列表，不报错；
+2. 目录没被 `package.json` 的 `files` 覆盖 —— 本地目录看起来正常，但 git / registry 安装解包出来的是 tarball，
+   `files` 没列到的路径（尤其是 `.agents` 这种点目录，写错一个字母就会漏）会被 npm 直接丢掉。
 
 ## 新增技能
 
 ### A. 打包进本包（推荐，随包分发）
 
 ```bash
-# 1) 放入 skills/<name>/SKILL.md（frontmatter 至少含 name、description，name 为 kebab-case）
+# 1) 放入 .agents/skills/<name>/SKILL.md（frontmatter 至少含 name、description，name 为 kebab-case）
 #    资源文件（references、scripts 等）放同一目录
 # 2) 重新打包并重装
 pnpm pack
@@ -53,6 +59,9 @@ dsh plugin --profile web add /path/to/dsh-coding-preset-<version>.tgz
 
 不需要改 `plugin.js`、不需要重建索引：内置 provider 自己解析 frontmatter 与 `whenToUse`/invocation 字段。
 （用 `dsh plugin add <目录>` 以 link 安装时，丢进目录即生效，无需重装。）
+
+新增的技能目录要落在 `package.json` 的 `files` 里（当前是 `.agents/skills`，整个目录递归包含），
+否则只有本地目录安装能看到它；`python3 tools/build-preset-patch.py --check` 会校验这一点。
 
 ### B. 给预设再加插件行
 
@@ -84,10 +93,10 @@ dsh plugin --profile web add 'github:yandy/dsh-plugins#main&path:dsh-coding-pres
 ## 结构
 
 ```
-package.json            # dsh.bundle.patch → cordis.patch.yml
+package.json            # dsh.bundle.patch → cordis.patch.yml；files 必须覆盖技能目录
 preset.delta.yml        # 唯一手写来源：预设身份 + replace / append
 cordis.patch.yml        # 生成物：完整预设声明（do not edit）
-skills/<name>/SKILL.md  # 技能包（数据）
+.agents/skills/<name>/SKILL.md   # 技能包（数据）
 tools/build-preset-patch.py
 README.md
 ```

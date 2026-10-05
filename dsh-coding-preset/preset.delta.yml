@@ -32,8 +32,11 @@ replace:
         # The skill pack ships inside this package, so no path here is tied to a
         # device or install location: `baseUrl` is the declaring patch file's
         # own URL, which is inside the installed package wherever it landed.
-        # Add a skill by dropping skills/<name>/SKILL.md into the package; the
-        # shipped provider parses each skill's frontmatter itself.
+        # Add a skill by dropping .agents/skills/<name>/SKILL.md into the
+        # package; the shipped provider parses each skill's frontmatter itself.
+        # package.json's `files` must keep covering that directory: a git or
+        # registry install unpacks that allowlist, and an absent skill root
+        # registers zero skills instead of failing. `--check` verifies both.
         customSkillDirs:
           - !!js >-
             process.getBuiltinModule('node:url').fileURLToPath(new URL('.agents/skills/', baseUrl))

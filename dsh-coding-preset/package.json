@@ -6,7 +6,7 @@
   "files": [
     "cordis.patch.yml",
     "preset.delta.yml",
-    ".agent/skills",
+    ".agents/skills",
     "tools",
     "README.md"
   ],

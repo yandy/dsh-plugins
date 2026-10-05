@@ -10,7 +10,10 @@ the restating mechanically instead of by hand:
   * it copies every baseline row verbatim, substituting the rows that the delta
     replaces and inserting the rows it appends;
   * it writes the generated patch with a content hash of the baseline, so
-    `--check` fails whenever the installation's baseline changes.
+    `--check` fails whenever the installation's baseline changes;
+  * it refuses a delta whose `baseUrl`-relative skill roots are missing from the
+    tree or from `package.json`'s `files` allowlist - the two ways a bundled
+    skill pack ends up registering no skills at all, without an error.
 
 Usage:
 
@@ -38,9 +41,13 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 DELTA_PATH = ROOT / "preset.delta.yml"
 TARGET_PATH = ROOT / "cordis.patch.yml"
+MANIFEST_PATH = ROOT / "package.json"
 
 ROW_ID = re.compile(r"^(\s*)- id: (\S+)\s*$")
 KEY = re.compile(r"^(\s*)([A-Za-z0-9_]+):\s*(.*)$")
+# `!!js` skill roots are always `<relative path> + baseUrl`, so the path the
+# provider will read is the path that has to exist and that npm has to ship.
+BASE_URL_DIR = re.compile(r"new URL\(\s*(['\"])(?P<path>[^'\"]+)\1\s*,\s*baseUrl\s*\)")
 
 
 class JsExpr(str):
@@ -75,6 +82,40 @@ def scalar(value) -> str:
 
 def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def packaged(relative: str, patterns: list[str]) -> bool:
+    """Report whether an npm `files` allowlist covers `relative`."""
+    trimmed = relative.rstrip("/")
+    return any(trimmed == pattern.rstrip("/") or trimmed.startswith(pattern.rstrip("/") + "/") for pattern in patterns)
+
+
+def skill_dir_problems(delta: dict) -> list[str]:
+    """Validate every `baseUrl`-relative skill root the delta declares.
+
+    A bundle that points `customSkillDirs` at a directory it does not ship
+    registers zero skills and says nothing about it: the provider treats an
+    absent root as an empty one. Both halves of that contract therefore have to
+    hold - the directory is in the tree, and `package.json`'s `files` keeps it
+    in the tarball, which is what a git or registry install resolves to.
+    """
+    try:
+        manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        return [f"{MANIFEST_PATH.name}: cannot read the npm `files` allowlist: {error}"]
+    patterns = [str(entry) for entry in manifest.get("files") or []]
+    problems: list[str] = []
+    for fragment in (delta.get("replace") or {}).values():
+        for match in BASE_URL_DIR.finditer(str(fragment)):
+            relative = match.group("path")
+            if not (ROOT / relative).is_dir():
+                problems.append(f"custom skill root {relative!r} does not exist under {ROOT}")
+            elif not packaged(relative, patterns):
+                problems.append(
+                    f"custom skill root {relative!r} is not covered by package.json `files` "
+                    f"{patterns}; npm would drop it from the tarball"
+                )
+    return problems
 
 
 def baseline_candidates(bundle: str, preset: str):
@@ -339,6 +380,12 @@ def main() -> int:
         raise SystemExit(f"generated preset id {preset_id!r} does not match the delta")
     if len(ids) != len(set(ids)):
         raise SystemExit("generated patch repeats a plugin row id")
+
+    problems = skill_dir_problems(delta)
+    for problem in problems:
+        print(f"error: {problem}", file=sys.stderr)
+    if problems:
+        return 1
 
     if args.to_stdout:
         sys.stdout.write(generated)
