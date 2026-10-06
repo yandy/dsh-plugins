@@ -45,9 +45,23 @@ MANIFEST_PATH = ROOT / "package.json"
 
 ROW_ID = re.compile(r"^(\s*)- id: (\S+)\s*$")
 KEY = re.compile(r"^(\s*)([A-Za-z0-9_]+):\s*(.*)$")
-# `!!js` skill roots are always `<relative path> + baseUrl`, so the path the
-# provider will read is the path that has to exist and that npm has to ship.
+# A `!!js` skill root is always `<anchor> + <path inside this package>`, written in
+# one of two shapes:
+#
+#   new URL('.agents/skills/', baseUrl)
+#     relative to baseUrl, which for a bundle patch is the PROFILE directory;
+#   join(dirname(createRequire(baseUrl).resolve('dsh-coding-preset/package.json')), '.agents/skills')
+#     relative to the directory the package NAME resolves to.
+#
+# Either way the provider reads a path inside this package, so that path is what has
+# to exist in the tree and what npm has to ship in the tarball.
 BASE_URL_DIR = re.compile(r"new URL\(\s*(['\"])(?P<path>[^'\"]+)\1\s*,\s*baseUrl\s*\)")
+# The tail of a `join(..., '<path>')` call. Only dot-relative tails count as skill
+# roots, so a `join` building a filename is never reported as a missing directory.
+JOIN_TAIL = re.compile(r"\.join\([^;]*?,\s*(['\"])(?P<path>\.[^'\"]*)\1\s*\)")
+# `createRequire(baseUrl).resolve('<name>/package.json')` has to name THIS package,
+# or the expression resolves nothing (or someone else's package) at runtime.
+RESOLVE_SPEC = re.compile(r"createRequire\(\s*baseUrl\s*\)\s*\.resolve\(\s*(['\"])(?P<spec>[^'\"]+)\1\s*\)")
 
 
 class JsExpr(str):
@@ -91,29 +105,46 @@ def packaged(relative: str, patterns: list[str]) -> bool:
 
 
 def skill_dir_problems(delta: dict) -> list[str]:
-    """Validate every `baseUrl`-relative skill root the delta declares.
+    """Validate every `baseUrl`-anchored skill root the delta declares.
 
     A bundle that points `customSkillDirs` at a directory it does not ship
     registers zero skills and says nothing about it: the provider treats an
     absent root as an empty one. Both halves of that contract therefore have to
     hold - the directory is in the tree, and `package.json`'s `files` keeps it
-    in the tarball, which is what a git or registry install resolves to.
+    in the tarball, which is what a git or registry install resolves to. A
+    package-name anchor has a third failure mode: the name in the expression
+    drifting away from this package's own `name`.
     """
     try:
         manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         return [f"{MANIFEST_PATH.name}: cannot read the npm `files` allowlist: {error}"]
     patterns = [str(entry) for entry in manifest.get("files") or []]
+    package_name = str(manifest.get("name") or "")
     problems: list[str] = []
+
+    def check_root(relative: str, expression: str) -> None:
+        if not (ROOT / relative).is_dir():
+            problems.append(f"custom skill root {relative!r} does not exist under {ROOT} ({expression})")
+        elif not packaged(relative, patterns):
+            problems.append(
+                f"custom skill root {relative!r} is not covered by package.json `files` "
+                f"{patterns}; npm would drop it from the tarball"
+            )
+
     for fragment in (delta.get("replace") or {}).values():
-        for match in BASE_URL_DIR.finditer(str(fragment)):
-            relative = match.group("path")
-            if not (ROOT / relative).is_dir():
-                problems.append(f"custom skill root {relative!r} does not exist under {ROOT}")
-            elif not packaged(relative, patterns):
+        text = str(fragment)
+        for match in BASE_URL_DIR.finditer(text):
+            check_root(match.group("path"), "new URL(..., baseUrl)")
+        for match in JOIN_TAIL.finditer(text):
+            check_root(match.group("path"), "join(..., '<path>')")
+        for match in RESOLVE_SPEC.finditer(text):
+            spec = match.group("spec")
+            resolved = spec.rsplit("/", 1)[0] if spec.endswith("/package.json") else spec
+            if resolved != package_name:
                 problems.append(
-                    f"custom skill root {relative!r} is not covered by package.json `files` "
-                    f"{patterns}; npm would drop it from the tarball"
+                    f"skill root expression resolves {spec!r}, which names package {resolved!r}, "
+                    f"but package.json declares name {package_name!r}"
                 )
     return problems
 
