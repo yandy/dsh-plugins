@@ -34,7 +34,7 @@
 
 ```sh
 # 从插件仓库装（bundle 层会自动禁用内置的 web-fetch-http 行并插入本插件行）
-dsh plugin --profile web add 'github:yandy/dsh-plugins#main&path=dsh-web-fetch-http-fakeip'
+dsh plugin --profile web add 'github:yandy/dsh-plugins#main&path:dsh-web-fetch-http-fakeip'
 
 # 本地开发
 dsh plugin --profile web add file:/absolute/path/to/dsh-web-fetch-http-fakeip
