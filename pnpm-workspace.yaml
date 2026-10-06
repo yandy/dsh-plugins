@@ -1,0 +1,14 @@
+# Workspace members. Every plugin package lives at the repository root and is
+# named `dsh-<something>`, so the glob below is the only place that decides what
+# `pnpm -r ...` (see the root package.json scripts) operates on.
+#
+# The packages stay independently installable: `dsh plugin --profile <p> add
+# 'github:yandy/dsh-plugins#main&path:dsh-<name>'` packs the package directory
+# on its own and never involves this workspace root.
+packages:
+  - 'dsh-*'
+
+# No package here has dependencies, so running a script (scripts in package.json
+# call each other through `pnpm run`) must never trigger an implicit install.
+# Without this, `pnpm check` on a fresh clone first runs `pnpm install`.
+verifyDepsBeforeRun: false

@@ -1,0 +1,23 @@
+{
+  "name": "dsh-plugins",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Monorepo of DeepSeek Harness (dsh) plugins: a coding agent preset with a bundled skill pack, and a fake-ip aware web_fetch provider.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.16.0"
+  },
+  "workspaces": [
+    "dsh-*"
+  ],
+  "scripts": {
+    "check": "pnpm run check:preset && pnpm run check:syntax",
+    "check:preset": "python3 dsh-coding-preset/tools/build-preset-patch.py --check",
+    "check:syntax": "node --check dsh-web-fetch-http-fakeip/index.js && node --check dsh-web-fetch-http-fakeip/test/smoke.mjs",
+    "test": "pnpm run test:fakeip",
+    "test:fakeip": "node dsh-web-fetch-http-fakeip/test/smoke.mjs",
+    "pack:coding": "pnpm --dir dsh-coding-preset pack",
+    "pack:fakeip": "pnpm --dir dsh-web-fetch-http-fakeip pack",
+    "pack:all": "pnpm run pack:coding && pnpm run pack:fakeip"
+  }
+}

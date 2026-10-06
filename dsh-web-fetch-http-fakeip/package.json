@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "description": "DeepSeek Harness web_fetch provider that accepts the local Clash/mihomo fake-ip ranges, so page fetching works while fake-ip DNS is active.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yandy/dsh-plugins.git",
+    "directory": "dsh-web-fetch-http-fakeip"
+  },
   "type": "module",
   "main": "index.js",
   "exports": {

@@ -3,6 +3,12 @@
   "version": "1.1.0",
   "description": "DeepSeek Harness Coding agent preset (Standard mode) with a bundled, extensible skill pack.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yandy/dsh-plugins.git",
+    "directory": "dsh-coding-preset"
+  },
+  "type": "module",
   "files": [
     "cordis.patch.yml",
     "preset.delta.yml",
@@ -17,8 +23,17 @@
     "skills"
   ],
   "dsh": {
+    "manifestVersion": 1,
     "bundle": {
       "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-web-app": ">=0.2.0-rc.1 <0.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-web-app": {
+      "optional": true
     }
   }
 }
