@@ -1,0 +1,42 @@
+{
+  "name": "dsh-web-fetch-http-fakeip",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness web_fetch provider that accepts the local Clash/mihomo fake-ip ranges, so page fetching works while fake-ip DNS is active.",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "web-fetch",
+    "fake-ip",
+    "clash",
+    "mihomo"
+  ],
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-web-fetch-http": ">=0.2.0-rc.1 <0.3.0",
+    "ipaddr.js": ">=2"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-web-fetch-http": {
+      "optional": true
+    },
+    "ipaddr.js": {
+      "optional": true
+    }
+  }
+}

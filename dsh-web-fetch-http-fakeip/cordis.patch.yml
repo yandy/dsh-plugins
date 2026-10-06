@@ -1,0 +1,42 @@
+# dsh-web-fetch-http-fakeip — bundle layer.
+#
+# An installed bundle is appended to the profile's `dsh.profile.bundles`, so this
+# layer is applied after the shipped bundles (dsh-base, dsh-web-app). That is what
+# lets the first entry below reach the row dsh-base declared.
+
+# The shipped fetch provider resolves every hostname itself and rejects any answer
+# that is not public unicast, which makes every fetch fail under fake-ip DNS. Disable
+# it so this plugin's provider is the only fetch backend and keeps the `http` id the
+# web row already pins.
+- id: web-fetch-http
+  disabled: true
+
+- insert:
+    - id: web-fetch-http-fakeip
+      name: 'dsh-web-fetch-http-fakeip'
+      config:
+        # Must match your Clash/mihomo DNS configuration exactly:
+        #   dns.fake-ip-range   198.18.0.1/16
+        #   dns.fake-ip-range6  fdfe:dcba:9876::1/64
+        # Answers inside these ranges are accepted, and the connection goes to the
+        # fake address as usual: the TUN maps it back to the hostname and applies
+        # your rules, exactly as it does for curl.
+        fakeIpRanges:
+          - 198.18.0.1/16
+          - fdfe:dcba:9876::1/64
+
+        # Registry id. Defaults to `http`, the id dsh-base already pins in the web row.
+        # Point the web row's `fetchProvider` at a different id if you change this.
+        # id: http
+
+        # Log every accept / refuse decision to stderr — this is how you notice that a
+        # Clash `fake-ip-range` change no longer matches `fakeIpRanges` above.
+        # debug: false
+
+        # Transport limits, matching the shipped provider's defaults. Keep the shipped
+        # row's configuration surface available even though that row is disabled.
+        # maxResponseBytes: 5000000
+        # maxBodyChars: 100000
+        # timeoutMs: 30000
+        # maxRedirects: 5
+        # userAgent: 'deepseek-harness/0.0.1 (+https://github.com/deepseek-ai)'
