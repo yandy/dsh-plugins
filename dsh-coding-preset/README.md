@@ -1,6 +1,6 @@
 # dsh-coding-preset
 
-DeepSeek Harness 的 **Coding agent 预设**：内置「标准模式」（standard）的全部能力，外加随包分发的 17 个技能。
+DeepSeek Harness 的 **Coding agent 预设**：内置「标准模式」（standard）的全部能力，外加随包分发的 16 个技能。
 
 ## 安装
 
@@ -27,8 +27,10 @@ pnpm --dir dsh-coding-preset pack && dsh plugin --profile web add /abs/path/dsh-
 
 | 来源 | 技能 |
 |---|---|
-| [superpowers](https://github.com/obra/superpowers)（15） | `brainstorming`、`writing-plans`、`executing-plans`、`subagent-driven-development`、`test-driven-development`、`systematic-debugging`、`verification-before-completion`、`requesting-code-review`、`receiving-code-review`、`finishing-a-development-branch`、`using-git-worktrees`、`dispatching-parallel-agents`、`writing-skills`、`using-superpowers`、`diagnosing-superpowers` |
+| [superpowers](https://github.com/obra/superpowers)（15） | `supo-brainstorming`、`supo-writing-plans`、`supo-executing-plans`、`supo-subagent-driven-development`、`supo-test-driven-development`、`supo-systematic-debugging`、`supo-verification-before-completion`、`supo-requesting-code-review`、`supo-receiving-code-review`、`supo-finishing-a-development-branch`、`supo-using-git-worktrees`、`supo-dispatching-parallel-agents`、`supo-writing-skills`、`supo-using-superpowers`、`supo-diagnosing-superpowers` |
 | [context7](https://github.com/upstash/context7)（1） | `find-docs` |
+
+superpowers 技能统一带 `supo-` 前缀，避免与项目级同名技能互相覆盖。
 
 `context7` 依赖外部工具，不装技能跑不起来：
 
@@ -40,7 +42,8 @@ npx ctx7 login                                                                  
 
 ```sh
 dsh --profile web --dump-config | grep -n preset-coding
-ls ~/.dsh/profiles/web/node_modules/dsh-coding-preset/.agents/skills | wc -l   # 应为 16
+ls ~/.dsh/profiles/web/node_modules/dsh-coding-preset/supo-skills | wc -l        # 应为 15（superpowers）
+ls ~/.dsh/profiles/web/node_modules/dsh-coding-preset/.agents/skills | wc -l     # 应为 1（find-docs）
 ```
 
 ## 排错
@@ -48,7 +51,7 @@ ls ~/.dsh/profiles/web/node_modules/dsh-coding-preset/.agents/skills | wc -l   #
 | 现象 | 处理 |
 |---|---|
 | 预设列表里没有 Coding | 先重启 dsh；确认上面 `dump-config` 能搜到 `preset-coding`。 |
-| 选了 Coding 但技能菜单是空的 | 上面第二条命令应为 17；为空说明安装产物没带技能目录，用 git `path:` 方式重装。 |
+| 选了 Coding 但技能菜单是空的 | 上面两条命令应分别为 15 和 1；为空说明安装产物没带技能目录，用 git `path:` 方式重装。 |
 | 某个技能看不到 | 可能被项目级同名技能覆盖（优先级见上）。 |
 | `--dump-config-schema` 退出码 1 | 与插件无关，是 shipped profile 自带的 schema 走查报错（本包只多一条 `preset-coding`）。 |
 

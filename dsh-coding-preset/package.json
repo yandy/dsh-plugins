@@ -12,7 +12,9 @@
   "files": [
     "cordis.patch.yml",
     "preset.delta.yml",
+    "skills.config.json",
     ".agents/skills",
+    "supo-skills",
     "tools",
     "README.md"
   ],

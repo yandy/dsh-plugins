@@ -1,5 +1,9 @@
-# Local tooling state (skills CLI, editors)
+# Local tooling state (skills CLI, editors, superpowers sync ref)
 .claude/
+.skills-ref
+
+# Python bytecode from tools/*.py
+__pycache__/
 
 # Packed tarballs: pnpm --dir <package> pack
 *.tgz
