@@ -23,18 +23,16 @@ pnpm --dir dsh-coding-preset pack && dsh plugin --profile web add /abs/path/dsh-
 优先级：**项目级**技能（`.dsh/skills`、`.agents/skills`）> 本包 > **用户级**技能（`~/.dsh/skills`、`~/.agents/skills`），
 同名时前面的赢。
 
-## 技能（17 个）
+## 技能（16 个）
 
 | 来源 | 技能 |
 |---|---|
 | [superpowers](https://github.com/obra/superpowers)（15） | `brainstorming`、`writing-plans`、`executing-plans`、`subagent-driven-development`、`test-driven-development`、`systematic-debugging`、`verification-before-completion`、`requesting-code-review`、`receiving-code-review`、`finishing-a-development-branch`、`using-git-worktrees`、`dispatching-parallel-agents`、`writing-skills`、`using-superpowers`、`diagnosing-superpowers` |
 | [context7](https://github.com/upstash/context7)（1） | `find-docs` |
-| [playwright-cli](https://github.com/microsoft/playwright-cli)（1） | `playwright-cli` |
 
-后两个依赖外部工具，不装只是这两个技能跑不起来：
+`context7` 依赖外部工具，不装技能跑不起来：
 
 ```sh
-npm install -g playwright @playwright/cli && playwright install chromium firefox   # playwright-cli
 npx ctx7 login                                                                    # find-docs
 ```
 
@@ -42,7 +40,7 @@ npx ctx7 login                                                                  
 
 ```sh
 dsh --profile web --dump-config | grep -n preset-coding
-ls ~/.dsh/profiles/web/node_modules/dsh-coding-preset/.agents/skills | wc -l   # 应为 17
+ls ~/.dsh/profiles/web/node_modules/dsh-coding-preset/.agents/skills | wc -l   # 应为 16
 ```
 
 ## 排错

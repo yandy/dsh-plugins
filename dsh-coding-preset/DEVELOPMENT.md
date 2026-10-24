@@ -25,7 +25,7 @@ python3 tools/build-preset-patch.py --baseline /path/to/standard.patch.yml   # �
 pnpm check:preset                              # 仓库根的等价命令
 ```
 
-- **加 / 删技能**：`npx skills add <pkg> -y`、`npx skills remove <name> -a pi`（会更新 `skills-lock.json`）。
+- **加 / 删技能**：`npx skills add <pkg> -y -a codex`、`npx skills remove <name> -a codex`（会更新 `skills-lock.json`）。
   技能就是 `.agents/skills/<name>/SKILL.md`（frontmatter 至少 `name`、`description`），provider 自己解析，
   不需要改代码或重建索引；目录必须留在 `package.json` 的 `files` 里，`--check` 会拦。
 - **加 / 改预设行**：在 `preset.delta.yml` 里 `replace`（按行 id **整体重述**，含 `name`）或 `append`，再重新生成。
@@ -34,13 +34,12 @@ pnpm check:preset                              # 仓库根的等价命令
 
 ## 当前技能
 
-三个上游来源，命令可直接重跑（会刷新 `skills-lock.json`）：
+2个上游来源，命令可直接重跑（会刷新 `skills-lock.json`）：
 
 | 来源 | 技能 | 拉取 |
 |---|---|---|
-| [obra/superpowers](https://github.com/obra/superpowers) | 15 个（清单见 [README](./README.md)） | `npx skills add obra/superpowers -y` |
-| [microsoft/playwright-cli](https://github.com/microsoft/playwright-cli) | `playwright-cli` | `npx skills add microsoft/playwright-cli --skill playwright-cli -y`，另需 `npm install -g playwright @playwright/cli && playwright install chromium firefox` |
-| [upstash/context7](https://github.com/upstash/context7) | `find-docs` | `npx skills add upstash/context7 --skill find-docs -y`，另需 `npx ctx7 login` |
+| [obra/superpowers](https://github.com/obra/superpowers) | 15 个（清单见 [README](./README.md)） | `npx skills add obra/superpowers -y -a codex` |
+| [upstash/context7](https://github.com/upstash/context7) | `find-docs` | `npx skills add upstash/context7 --skill find-docs -y -a codex`，另需 `npx ctx7 login` |
 
 ## 两个坑
 
