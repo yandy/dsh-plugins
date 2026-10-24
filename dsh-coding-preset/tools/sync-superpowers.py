@@ -8,7 +8,7 @@ vendored copy separate from `.agents/skills/` (which the skills CLI manages)
 means the whole directory can be pruned on every sync. Everything else is
 carried over unchanged:
 
-  * `skills.config.json` pins the upstream repo, ref and skill list;
+  * `supo.config.json` pins the upstream repo, ref and skill list;
   * the repo is cached under the system temp dir and cloned / fetched only when
     the cache is missing or not at the requested ref;
   * every skill is copied to `supo-skills/supo-<name>/` with the `supo-` prefix
@@ -17,7 +17,7 @@ carried over unchanged:
   * `.skills-ref` records the ref that was last synced, so an unchanged ref
     with all skills present skips the copy / rewrite step;
   * directories in `supo-skills/` whose skill is no longer listed in
-    `skills.config.json` are removed (`.agents/skills/` is never touched).
+    `supo.config.json` are removed (`.agents/skills/` is never touched).
 
 Usage:
 
@@ -37,7 +37,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CONFIG_PATH = ROOT / "skills.config.json"
+CONFIG_PATH = ROOT / "supo.config.json"
 SKILLS_REF_PATH = ROOT / ".skills-ref"
 CACHE_DIR = Path(tempfile.gettempdir()) / "dsh-coding-preset-superpowers-cache"
 SKILLS_DIR = ROOT / "supo-skills"
