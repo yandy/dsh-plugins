@@ -5,7 +5,6 @@
 
 | 包 | 做什么 | 文档 |
 |---|---|---|
-| `dsh-coding-preset` | Coding agent 预设 + 随包技能包（17 个技能） | [用户](./dsh-coding-preset/README.md) · [开发](./dsh-coding-preset/DEVELOPMENT.md) |
 | `dsh-web-fetch-http-fakeip` | 让 `web_fetch` 在 Clash/mihomo fake-ip DNS 下可用 | [用户](./dsh-web-fetch-http-fakeip/README.md) · [开发](./dsh-web-fetch-http-fakeip/DEVELOPMENT.md) |
 
 安装（安装/卸载需要 `pnpm`，装完重启 dsh；细节见各包 README）：
@@ -17,12 +16,12 @@ dsh plugin --profile web add 'github:yandy/dsh-plugins#main&path:<包目录名>'
 ## 开发
 
 ```sh
-pnpm check        # 预设漂移 + JS 语法检查（提交前跑）
+pnpm check        # JS 语法检查（提交前跑）
 pnpm test:fakeip  # fake-ip provider 的真实抓取 smoke（需要网络）
-pnpm pack:all     # 两个包各自打 tarball 到包目录
+pnpm pack:fakeip  # 打 tarball 到 fake-ip 包目录
 ```
 
-需要 Node ≥ 20.16；预设生成/校验还需要 Python 3 + PyYAML。仓库无依赖，不必 `pnpm install`。
+需要 Node ≥ 20.16。仓库无依赖，不必 `pnpm install`。
 实测环境：dsh `0.2.0-rc.2`、Node 24.15、pnpm 11.7；宿主兼容范围写在各包 `package.json` 的
 `peerDependencies` 里，dsh 会按它做启动闸门。
 
@@ -41,4 +40,4 @@ pnpm pack:all     # 两个包各自打 tarball 到包目录
 
 ## 许可
 
-[MIT](./LICENSE)。`dsh-coding-preset/.agents/skills/` 内的技能正文与资源著作权归各上游项目（均 MIT）。
+[MIT](./LICENSE)。
